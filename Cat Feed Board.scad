@@ -28,7 +28,7 @@ include <BOSL2/shapes3d.scad>
 module switch() {
     rotate([-90,0,0])
     translate([-35.25,-5.5,0])
-    import("/home/kyzik/Documents/3D models/My Designs/Cat Feed Board/EZ_Print_Slide_Switch-printables 865051.stl");
+    import("EZ_Print_Slide_Switch-printables 865051.stl");
 }
 
 module switch_hull() {
