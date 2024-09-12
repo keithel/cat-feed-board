@@ -15,6 +15,7 @@
 board_width=158;
 board_length=180+14;
 board_xheight=1;
+text_emboss_height=2;
 
 $fn=100;
 
@@ -42,24 +43,12 @@ switch_dimensions=[37.25,20,switch_housing_height+0.1];
 switch_xheight=0.1; // Extra height that the switch itself sticks up above its housing.
 
 margin=5;
+board_height=switch_housing_height+board_xheight;
 difference() {
-    board_height=switch_housing_height+board_xheight;
     cuboid([board_width,board_length,board_height], anchor=BOTTOM+LEFT+FRONT, rounding=1, edges=[TOP+FRONT, TOP+BACK, LEFT+FRONT, LEFT+BACK, RIGHT+FRONT, RIGHT+BACK, TOP+LEFT, TOP+RIGHT]);
 
-    meal_names = [["BREAKFAST",5,0], ["LUNCH",7,8.5], ["DINNER",7,5.5]];
-    for(i=[0:2]) {
-        translate([margin+25+(switch_dimensions[0]+meal_names[i][2])*i,board_length-margin-8,board_height-2])
-            linear_extrude(height=20)
-            text(meal_names[i][0], size=meal_names[i][1], font="DejaVu Sans Mono");
-    }
-
-    dow=["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
     translate([0,-14,0])
     for(i=[0:6]) {
-        translate([margin, board_length-margin-14+(-switch_dimensions[1]-5.1)*i, board_height-2])
-        linear_extrude(height=20)
-        text(dow[i], size=8, font="DejaVu Sans Mono");
-
         for(j=[0:2]) {
             translate([margin+25+(switch_dimensions[0]+5)*j,board_length-switch_dimensions[1]-5+(-switch_dimensions[1]-5)*i,board_xheight])
                 switch_hull();
@@ -67,9 +56,22 @@ difference() {
     }
 }
 
+meal_names = [["BREAKFAST",5,0], ["LUNCH",7,8.5], ["DINNER",7,5.5]];
+for(i=[0:2]) {
+    translate([margin+25+(switch_dimensions[0]+meal_names[i][2])*i,board_length-margin-8,board_height])
+        linear_extrude(height=text_emboss_height)
+        text(meal_names[i][0], size=meal_names[i][1], font="DejaVu Sans Mono");
+}
+
+
 translate([0,-14,0])
 for(i=[0:6]) {
+    dow=["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
     for(j=[0:2]) {
+        translate([margin, board_length-margin-14+(-switch_dimensions[1]-5.1)*i, board_height])
+        linear_extrude(height=text_emboss_height)
+        text(dow[i], size=8, font="DejaVu Sans Mono");
+
         translate([margin+25+(switch_dimensions[0]+5)*j,board_length-switch_dimensions[1]-5+(-switch_dimensions[1]-5)*i,board_xheight])
             switch();
     }
