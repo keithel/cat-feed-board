@@ -58,6 +58,35 @@ module switch_board() {
     switch_housing_height=toggle_switch_dimensions[2];//fidget_slide_switch_housing_height;
     board_height=switch_housing_height+board_xheight;
     margin=5;
+    dow_offset=25;
+
+    translate([0,-19,0])
+    for(i=[0:6]) {
+        dow=["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
+        for(j=[0:2]) {
+            translate([margin, board_length-margin-9+(-switch_dimensions[1]-5.1)*i, board_height])
+            linear_extrude(height=text_emboss_height)
+            text(dow[i], size=8, font="DejaVu Sans Mono");
+
+            translate([margin+dow_offset+(switch_dimensions[0]+5)*j,board_length-switch_dimensions[1]-(switch_dimensions[1]+5)*i,board_xheight])
+                toggle_switch_base();
+        }
+    }
+
+    // Meal names, font size to use, and the width in mm of the text.
+    meal_names = [
+        ["BREAKFAST",8,"DejaVu Sans Mono",60],
+        ["LUNCH",8,"DejaVu Sans Mono",32.704],
+        ["DINNER",8,"DejaVu Sans Mono",40.14]
+    ];
+    bld_xdist_to_split=board_width-margin*2-dow_offset;
+    translate([margin+dow_offset,0,0])
+    for(i=[0:2]) {
+        col_width = bld_xdist_to_split/3;
+        translate([(col_width*i) + (col_width-meal_names[i][3])/2,board_length-margin-8,board_height])
+            #linear_extrude(height=text_emboss_height)
+            text(meal_names[i][0], size=meal_names[i][1], font=meal_names[i][2]);
+    }
 
     difference() {
         cuboid([board_width,board_length,board_height], anchor=BOTTOM+LEFT+FRONT, rounding=1, edges=[TOP+FRONT, TOP+BACK, LEFT+FRONT, LEFT+BACK, RIGHT+FRONT, RIGHT+BACK, TOP+LEFT, TOP+RIGHT]);
@@ -70,33 +99,12 @@ module switch_board() {
             }
         }
     }
-
-    meal_names = [["BREAKFAST",8,0], ["LUNCH",8,4], ["DINNER",8,4.6]];
-    for(i=[0:2]) {
-        translate([margin+25+(switch_dimensions[0]+meal_names[i][2])*i,board_length-margin-8,board_height])
-            #linear_extrude(height=text_emboss_height)
-            text(meal_names[i][0], size=meal_names[i][1], font="DejaVu Sans Mono");
-    }
-
-
-    translate([0,-14,0])
-    for(i=[0:6]) {
-        dow=["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
-        for(j=[0:2]) {
-            translate([margin, board_length-margin-14+(-switch_dimensions[1]-5.1)*i, board_height])
-            linear_extrude(height=text_emboss_height)
-            text(dow[i], size=8, font="DejaVu Sans Mono");
-
-            translate([margin+25+(switch_dimensions[0]+5)*j,board_length-switch_dimensions[1]-5+(-switch_dimensions[1]-5)*i,board_xheight])
-                toggle_switch_base();
-        }
-    }
 }
 
 if(test_fit) {
     intersection() {
         switch_board();
-        cube([70,28,30]);
+        cube([toggle_switch_dimensions[0]+34,30,30]);
     }
 } else {
     switch_board();
@@ -104,7 +112,12 @@ if(test_fit) {
 
 
 // This is just to make things visible during dev
-if($preview)
+if($preview) {
     #linear_extrude(height=board_xheight+0.1)
         translate([5,5,0])
             square([board_width-10, board_length-10]);
+
+    // for determining the width of text.
+    translate([-40.14,-20,0])
+        text("DINNER", 8, "DejaVu Sans Mono");
+}
