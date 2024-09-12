@@ -12,12 +12,12 @@
 **
 ****************************************************************************/
 
-board_width=270;
-board_length=208;
+board_width=150;
+board_length=177.5;
 board_xheight=1;
 text_emboss_height=2;
 $fn=100;
-test_fit=false;
+testing=0; // [0:No Test, 1:Test Fit, 2:Test just switch]
 
 module end_of_customizer() {}
 
@@ -53,39 +53,60 @@ module toggle_switch_base_hull() {
     toggle_switch_base();
 }
 
+small_thin_toggle_switch_dimensions=[37.5,18,4.35];
+module small_thin_toggle_switch_base() {
+    import("toggle_switch_small_short_with_divot.base-fed-feed-v1.stl");
+
+    // Remove the rounded edges, since we will be embedding this in a board.
+    cube([37.5,2,4.35], center=false);
+    translate([0,16,0])
+        cube([37.5,2,4.35], center=false);
+}
+
+module small_thin_toggle_switch_base_hull() {
+    linear_extrude(height=small_thin_toggle_switch_dimensions[2]+0.01)
+    projection()
+    small_thin_toggle_switch_base();
+}
+
+
+
 module switch_board() {
-    switch_dimensions=toggle_switch_dimensions; //fidget_slide_switch_dimensions;
-    switch_housing_height=toggle_switch_dimensions[2];//fidget_slide_switch_housing_height;
+    switch_dimensions=small_thin_toggle_switch_dimensions;
+    switch_housing_height=small_thin_toggle_switch_dimensions[2];
     board_height=switch_housing_height+board_xheight;
     margin=5;
-    dow_offset=25;
+    dow_offset=18;
 
     translate([0,-19,0])
     for(i=[0:6]) {
         dow=["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
         for(j=[0:2]) {
-            translate([margin, board_length-margin-9+(-switch_dimensions[1]-5.1)*i, board_height])
-            linear_extrude(height=text_emboss_height)
-            text(dow[i], size=8, font="DejaVu Sans Mono");
+            translate([margin, board_length-margin-7+(-switch_dimensions[1]-5.1)*i, board_height])
+            #linear_extrude(height=text_emboss_height)
+            text(dow[i], size=6, font="DejaVu Sans Mono:style=Bold",);
 
-            translate([margin+dow_offset+(switch_dimensions[0]+5)*j,board_length-switch_dimensions[1]-(switch_dimensions[1]+5)*i,board_xheight])
-                toggle_switch_base();
+            translate([margin+dow_offset+(switch_dimensions[0]+margin)*j,board_length-switch_dimensions[1]-(switch_dimensions[1]+5)*i,board_xheight])
+                small_thin_toggle_switch_base();
         }
     }
 
-    // Meal names, font size to use, and the width in mm of the text.
+    // Meal names, font size to use, and the width in mm of the te+5xt.
     meal_names = [
-        ["BREAKFAST",8,"DejaVu Sans Mono",60],
-        ["LUNCH",8,"DejaVu Sans Mono",32.704],
-        ["DINNER",8,"DejaVu Sans Mono",40.14]
+        ["BREAKFAST",6,"DejaVu Sans Mono",4.8*9],
+        ["LUNCH",6,"DejaVu Sans Mono",4.8*5],
+        ["DINNER",6,"DejaVu Sans Mono",4.8*6]
     ];
     bld_xdist_to_split=board_width-margin*2-dow_offset;
     translate([margin+dow_offset,0,0])
     for(i=[0:2]) {
         col_width = bld_xdist_to_split/3;
-        translate([(col_width*i) + (col_width-meal_names[i][3])/2,board_length-margin-8,board_height])
+        col_xcenterpoint = (switch_dimensions[0]-1)/2+((switch_dimensions[0]+margin))*i;
+
+        translate([col_xcenterpoint-meal_names[i][3]/2,board_length-margin-8,board_height]) {
             #linear_extrude(height=text_emboss_height)
             text(meal_names[i][0], size=meal_names[i][1], font=meal_names[i][2]);
+        }
     }
 
     difference() {
@@ -94,30 +115,50 @@ module switch_board() {
         translate([0,-14,0])
         for(i=[0:6]) {
             for(j=[0:2]) {
-                translate([margin+25+(switch_dimensions[0]+5)*j,board_length-switch_dimensions[1]-5+(-switch_dimensions[1]-5)*i,board_xheight])
-                    toggle_switch_base_hull(); //fidget_slide_switch_hull();
+                translate([margin+dow_offset+(switch_dimensions[0]+margin)*j,board_length-switch_dimensions[1]-5+(-switch_dimensions[1]-5)*i,board_xheight])
+                    small_thin_toggle_switch_base_hull(); //fidget_slide_switch_hull();
             }
         }
     }
 }
 
-if(test_fit) {
+if(testing == 1) {
     intersection() {
         switch_board();
         cube([toggle_switch_dimensions[0]+34,30,30]);
     }
-} else {
+} else if(testing == 2) {
+    small_thin_toggle_switch_base();
+
+    translate([small_thin_toggle_switch_dimensions[0]+10,0,0])
+        small_thin_toggle_switch_base_hull();
+}
+else {
     switch_board();
 }
 
 
 // This is just to make things visible during dev
 if($preview) {
-    #linear_extrude(height=board_xheight+0.1)
-        translate([5,5,0])
-            square([board_width-10, board_length-10]);
+    if(!testing) {
+        #linear_extrude(height=board_xheight+.8)
+            translate([5,5,0])
+                square([board_width-10, board_length-10]);
+    }
 
     // for determining the width of text.
-    translate([-40.14,-20,0])
-        text("DINNER", 8, "DejaVu Sans Mono");
+    translate([-40,-7,0])
+        text("G", 7, "DejaVu Sans Mono");
+
+    translate([0,-20,0]) {
+        difference() {
+            union() {
+                cube([2,10,2]);
+                cube([10,2,2]);
+                translate([2,2,0])
+                    fillet(l=10, r=4);
+            }
+            fillet(l=10, r=5);
+        }
+    }
 }
